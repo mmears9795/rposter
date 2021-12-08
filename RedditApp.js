@@ -148,6 +148,7 @@ async function grabPost() {
 };
 
 async function writePost(user, subreddit) {
+
     const r = new snoowrap({
         userAgent: user.account_details.userAgent,    
         clientId: user.account_details.redditClientId,
@@ -158,11 +159,11 @@ async function writePost(user, subreddit) {
     var postData = await grabPost();
     var title = postData.title;
     var text = postData.text;
+    var sub = subreddit.subreddit
 
-    r.getSubreddit(subreddit.subreddit).submitSelfpost({
-        title: title,
-        text: text,
-        sendReplies: false
+    r.getSubreddit('TheCyberInu').submitSelfpost({
+        title: 'Title',
+        text: 'Test'
     });
 };
 
