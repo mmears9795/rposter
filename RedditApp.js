@@ -1,114 +1,196 @@
-// import snoowrap from 'snoowrap';
-import { promises as fs } from "fs";
+import snoowrap from 'snoowrap';
+import { promises as fs, write } from "fs";
 
-// var clientSecretToken = "01tFtRuhDKhtAHJSB04UVDIcs6N8JQ";
-// var clientIDKey = "dz-5UGsi3SzGxFXNOKaiVg";
-// var clientRefreshToken = "1107866923307-Gw2N8yOmRUfdbEB4xpMpeXGPdkpH_Q";
-// var accessToken = "1107866923307-6zZiryJscram9GD4UgqaiiNgOPH4kQ";
+// Variable for time in between posts
+let timeInterval = await timeToWait();
 
-// function postLink(title, text, subreddit) {
-//     const r = new snoowrap({
-//         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
-//         clientId: clientIdKey,
-//         clientSecret: clientSecretToken,
-//         refreshToken: clientRefreshToken,
-
-//     });
-
-//     r.getSubreddit(subreddit).submitSelfpost({
-//         title: title,
-//         text: text,
-//         sendReplies: false
-//     });
-// };
-
-// postLink(title, link, subreddit);clientSecretToken
-
-// var postTimer = setInterval (function () {
-//     async function makePost() {
+var postInterval = setInterval( function () {
+    
+    // Function to create post
+    async function createPost(){
         
-//         async function sortUsers() {
-//             for 
-//         }
-//     }
-// })
+        // Will update timestamps if true at end of function
+        var writeFile = false;
 
+        // Obtain the user object and subreddit object
+        var user = await selectAccount();
+
+        do {
+        let user = await selectAccount();
+        } while (user == undefined);
+
+        let subreddit = await selectSub();
+
+        // Check if timestamp for sub in the account is > 24 hours
+
+        var subFound = false;
+
+        for (var i = 0; i < user.last_timestamp_per_sub.length; i++) {
+            if (user.last_timestamp_per_sub[i][0] == subreddit.subreddit) {
+                var twenty_four_hours = 24 * 60 * 60 * 1000;
+                var timeSinceLastTimeStamp = Date.now() - user.last_timestamp_per_sub[i][1];
+
+                if (timeSinceLastTimeStamp > twenty_four_hours) {
+                    subFound = true;
+                    writePost(user.userAgent, user.redditClientId, user.redditClientSecret, user.redditRefreshToken, subreddit.subreddit);
+
+                    // Update timestamp
+                    user.last_post_timestamp = Date.now();
+                    user.lasttimestamp_per_sub[i][1] = Date.now();
+                    subreddit.last_post_timestamp = Date.now();
+                    writeFile = true;
+                };
+            };
+        };
+
+        if (subFound == false) {
+            writePost(user, subreddit);
+            user.last_post_timestamp = Date.now();
+            var newSubTimestamp = [subreddit.subreddit, Date.now()]
+            user.last_timestamp_per_sub.push(newSubTimestamp);
+            subreddit.last_post_timestamp = Date.now();
+            writeFile = true;       
+        };
+
+        // Update timestamps in all files
+        if(writeFile == true){
+            // Accounts file
+            updateFile('accounts.json', user);
+            updateFile('subreddits.json', subreddit);
+        };
+    };
+    createPost();
+}, 5000);
 
 // function for reading data from JSON file
-// async function readData(file){
-//     let dataX = fs.readFile(file, "utf8", function (err, data) {
-//         return data;
-//     });
+async function readData(file){
+    let dataX = fs.readFile(file, "utf8", function (err, data) {
+        return data;
+    });
 
-//     return dataX;
+    return dataX;
 
-// }
+}
 
 // calculate total wait time between posts
 async function timeToWait() {
-    async function readData(file){
-        let dataX = fs.readFile(file, "utf8", function (err, data) {
-            return data;
-        });
-    
-        return dataX;
-    
-    }
     var accountFile = 'accounts.json';
     var dataFromFile = await readData(accountFile);
         dataFromFile = JSON.parse(dataFromFile);
 
     
     var totalUsers = 0;
-    var postTimer = dataFromFile.forEach(user => {
+
+    dataFromFile.forEach(user => {
         totalUsers++;
     });
 
     var minutesToWait = 30 / totalUsers;
     return minutesToWait * 60 * 1000;
 
-}
+};
 
-// Variable for time in between posts
-let timeInterval = await timeToWait();
+// Function to send the next post
+async function selectAccount() {
 
+    // Parse information from accounts.json
+    var accountFile = 'accounts.json';
+    var dataFromFile = await readData(accountFile);
+    dataFromFile = JSON.parse(dataFromFile);
 
-// Post to reddit
-var postToReddit = setInterval( function () {
+    var userTimestamp = Date.now();
+    var userToUse = "";
 
-    // Function to select the next account to post
-    async function selectAccount() {
+    // Check each user to find lowest timestamp
+    dataFromFile.forEach(user => {
 
-        async function readData(file){
-            let dataX = fs.readFile(file, "utf8", function (err, data) {
-                return data;
-            });
-        
-            return dataX;
-        
+        if (user.last_post_timestamp < userTimestamp) {
+            userTimestamp = user.last_post_timestamp;
+            userToUse = user;
         };
+    });
 
-        var accountFile = 'accounts.json';
-        var dataFromFile = await readData(accountFile);
-        dataFromFile = JSON.parse(dataFromFile);
+    // Check if time has been 30 minutes since user last posted 
 
-        dataFromFile.forEach(user => {
-            var timestamp = Date.now();
-            var timeToWait = 0.5 * 60 * 60 * 1000;
-            var userToUse;
+    var timeToWait = 0.5 * 60 * 60 * 1000;
 
-            if (user.last_post_timestamp < timestamp) {
-                timestamp = user.last_post_timestamp;
-                userToUse = user.account_username;
-            };
-            console.log(userToUse);
-        });
-        
-        // var timeSinceLastTimestamp = Date.now() - timestamp;
+    var timeSinceLastTimestamp = Date.now() - userTimestamp;
 
-        // if (timeSinceLastTimestamp < timeToWait) {
-                
-        // };
+    // if greater than 30 - return user object
+    if (timeSinceLastTimestamp > timeToWait) {
+            return userToUse;
     };
-    selectAccount();
-}, 5000);
+};
+
+// Selects a subreddit from the subreddits.json file
+async function selectSub() {
+    var subredditFile = 'subreddits.json';
+    var dataFromFile = await readData(subredditFile);
+    var dataFromFile = JSON.parse(dataFromFile);
+
+    var timestamp = Date.now();
+    var subToUse = "" 
+
+    dataFromFile.forEach(sub => {
+        if (sub.last_post_timestamp < timestamp) {
+            timestamp = sub.last_post_timestamp
+            subToUse = sub;
+        };
+    });
+    return subToUse;
+};
+
+async function grabPost() {
+    var postFile = 'posts.json';
+    var dataFromFile = await readData(postFile);
+    var dataFromFile = JSON.parse(dataFromFile);
+    return dataFromFile;
+};
+
+async function writePost(user, subreddit) {
+    const r = new snoowrap({
+        userAgent: user.account_details.userAgent,    
+        clientId: user.account_details.redditClientId,
+        clientSecret: user.account_details.redditClientSecret,
+        refreshToken: user.account_details.redditRefreshToken
+    });
+
+    var postData = await grabPost();
+    var title = postData.title;
+    var text = postData.text;
+
+    r.getSubreddit(subreddit.subreddit).submitSelfpost({
+        title: title,
+        text: text,
+        sendReplies: false
+    });
+};
+
+async function updateFile(fileName, object) {
+    var dataFromFile = await readData(fileName);
+    var dataFromFile = JSON.parse(dataFromFile);
+    
+    if (fileName == 'subreddits.json') {
+        for (var i=0; i < dataFromFile.length; i++) {
+            if (dataFromFile[i].subreddit == object.subreddit) {
+                dataFromFile[i] = object;
+
+            };
+        };
+    };
+    
+    if (fileName == 'accounts.json') {
+
+        for (var i=0; i < dataFromFile.length; i++) {
+            if (dataFromFile[i].account_username == object.account_username) {
+                dataFromFile[i] = object;
+
+            };
+        };
+    };
+
+    fs.writeFile(fileName, JSON.stringify(dataFromFile), function(err){
+        if (err) throw err;
+        console.log('The "data to append" was appended to file!');
+    });
+};

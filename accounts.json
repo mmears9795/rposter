@@ -1,11 +1,9 @@
 [   
-    {
-    "account_username": "Diligent_Pea_6033",
-    "last_post_timestamp": 0,
-    "last_timestamp_per_sub": [
-        ["sub_name", "last_post_timestamp"],
-        ["sub_name", "last_past_timestamp"]
-    ],
+    {    
+        "account_username":"Diligent_Pea_6033",
+        "last_post_timestamp":1,
+        "last_timestamp_per_sub": [
+        ],
     "account_details": {
         "userAgent": "Opera/8.13 (Windows NT 6.2; en-US) Presto/2.12.249 Version/12.00",
         "redditClientId": "01tFtRuhDKhtAHJSB04UVDIcs6N8J",
@@ -16,7 +14,9 @@
 
     {
         "account_username":"Account 2",
-        "last_post_timestamp":0,
+        "last_post_timestamp":1,
+        "last_timestamp_per_sub": [
+        ],
         "account_details": {
             "userAgent": "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 5.1; Trident/5.1)",
             "redditClientId" : "THE REDDIT CLIENT ID",
@@ -27,7 +27,9 @@
 
     {
         "account_username":"Account 3",
-        "last_post_timestamp":0,
+        "last_post_timestamp":2,
+        "last_timestamp_per_sub": [
+        ],
         "account_details": {
             "userAgent": "Opera/8.97 (Windows NT 5.1; sl-SI) Presto/2.10.221 Version/10.00",
             "redditClientId" : "THE REDDIT CLIENT ID",
@@ -38,7 +40,9 @@
 
     {
         "account_username":"Account 4",
-        "last_post_timestamp":0,
+        "last_post_timestamp":3,
+        "last_timestamp_per_sub": [
+        ],
         "account_details": {
             "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8 rv:5.0) Gecko/20120215 Firefox/35.0",
             "redditClientId" : "THE REDDIT CLIENT ID",
@@ -49,7 +53,9 @@
 
     {
         "account_username":"Account 5",
-        "last_post_timestamp":0,
+        "last_post_timestamp":4,
+        "last_timestamp_per_sub": [
+        ],
         "account_details": {
             "userAgent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/5330 (KHTML, like Gecko) Chrome/36.0.813.0 Mobile Safari/5330",
             "redditClientId" : "THE REDDIT CLIENT ID",
