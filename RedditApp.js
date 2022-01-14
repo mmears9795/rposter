@@ -1,8 +1,11 @@
 import snoowrap from 'snoowrap';
 import { promises as fs, write } from "fs";
+import { exit } from 'process';
 
 // Variable for time in between posts
 let timeInterval = await timeToWait();
+
+let postsMade = 0;
 
 var postInterval = setInterval( function () {
     
@@ -32,35 +35,40 @@ var postInterval = setInterval( function () {
 
                 if (timeSinceLastTimeStamp > twenty_four_hours) {
                     subFound = true;
-                    writePost(user.userAgent, user.redditClientId, user.redditClientSecret, user.redditRefreshToken, subreddit.subreddit);
-
-                    // Update timestamp
-                    user.last_post_timestamp = Date.now();
-                    user.lasttimestamp_per_sub[i][1] = Date.now();
-                    subreddit.last_post_timestamp = Date.now();
-                    writeFile = true;
+                    var errorCheck = await writePost(user, subreddit);
+                    if (!errorCheck) {
+                        user.last_post_timestamp = Date.now();
+                        var newSubTimestamp = [subreddit.subreddit, Date.now()]
+                        user.last_timestamp_per_sub.push(newSubTimestamp);
+                        subreddit.last_post_timestamp = Date.now();
+                        writeFile = true;
+                    };       
                 };
             };
         };
 
         if (subFound == false) {
-            writePost(user, subreddit);
-            user.last_post_timestamp = Date.now();
-            var newSubTimestamp = [subreddit.subreddit, Date.now()]
-            user.last_timestamp_per_sub.push(newSubTimestamp);
-            subreddit.last_post_timestamp = Date.now();
-            writeFile = true;       
+            var errorCheck = await writePost(user, subreddit);
+            if (!errorCheck) {
+                user.last_post_timestamp = Date.now();
+                var newSubTimestamp = [subreddit.subreddit, Date.now()]
+                user.last_timestamp_per_sub.push(newSubTimestamp);
+                subreddit.last_post_timestamp = Date.now();
+                writeFile = true;
+            }       
         };
 
         // Update timestamps in all files
         if(writeFile == true){
             // Accounts file
+            postsMade ++;
             updateFile('accounts.json', user);
             updateFile('subreddits.json', subreddit);
         };
     };
+    console.log("Total posts: ", postsMade);
     createPost();
-}, 5000);
+}, timeToWait);
 
 // function for reading data from JSON file
 async function readData(file){
@@ -149,22 +157,31 @@ async function grabPost() {
 
 async function writePost(user, subreddit) {
 
-    const r = new snoowrap({
-        userAgent: user.account_details.userAgent,    
-        clientId: user.account_details.redditClientId,
-        clientSecret: user.account_details.redditClientSecret,
-        refreshToken: user.account_details.redditRefreshToken
-    });
+    // const r = new snoowrap({
+    //     userAgent: user.account_details.userAgent,    
+    //     clientId: user.account_details.redditClientId,
+    //     clientSecret: user.account_details.redditClientSecret,
+    //     refreshToken: user.account_details.redditRefreshToken
+    // });
 
-    var postData = await grabPost();
-    var title = postData.title;
-    var text = postData.text;
-    var sub = subreddit.subreddit
+    // var postData = await grabPost();
+    // var title = postData.title;
+    // var text = postData.text;
+    // var sub = subreddit.subreddit
+    var isError = false;
 
-    r.getSubreddit('TheCyberInu').submitSelfpost({
-        title: 'Title',
-        text: 'Test'
-    });
+    // try {
+    //     r.getSubreddit(sub).submitSelfpost({
+    //         title: title,
+    //         text: text
+    //     });
+    // }
+    // catch (e) {
+    //     console.log(e);
+    //     isError = true;
+    // }
+
+    return isError;
 };
 
 async function updateFile(fileName, object) {
@@ -175,7 +192,6 @@ async function updateFile(fileName, object) {
         for (var i=0; i < dataFromFile.length; i++) {
             if (dataFromFile[i].subreddit == object.subreddit) {
                 dataFromFile[i] = object;
-
             };
         };
     };
@@ -185,7 +201,6 @@ async function updateFile(fileName, object) {
         for (var i=0; i < dataFromFile.length; i++) {
             if (dataFromFile[i].account_username == object.account_username) {
                 dataFromFile[i] = object;
-
             };
         };
     };
